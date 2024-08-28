@@ -14,8 +14,7 @@ async function sendSlotBookingEmail(adminEmail, candidateEmail, date, time, dist
             pass: process.env.PASSWORD,
         },
     });
-    const adminLoginUrl = `http://localhost:3000/AdminLoginPage`;
-    const bookingUrl = `${adminLoginUrl}?redirect=/admin/bookings/${bookingId}`;
+   const bookingUrl=  `${process.env.FRONTEND_URL}`;
   const mailOptions = {
         from: {
             name: "CSG Team",

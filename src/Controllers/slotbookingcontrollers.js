@@ -3,6 +3,7 @@ const TimeSlot = require('../Modules/timeSlotModule');
 const Candidate = require('../Modules/candidateModule');
 const KGIDCandidate = require('../Modules/kgidcandidateModule');
 const { sendSlotBookingEmail } = require("../Servives/emailservice.js");
+const { DeptAdmin}=require('../Modules/adminModule');
 
 // Book a time slot
 const BookSlot = async (req, res) => {
@@ -13,9 +14,9 @@ const BookSlot = async (req, res) => {
         const user_email = await Booking.findOne({ email: email });
         console.log(user_email)
         if (user_email) {
-
-            return res.status(404).json({ error: "user can book only one slot" })
+        return res.status(404).json({ error: "user can book only one slot" })
         }
+        
         const parsedDate = new Date(date);
         parsedDate.setUTCHours(0, 0, 0, 0);
 
