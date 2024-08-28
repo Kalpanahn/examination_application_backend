@@ -4,6 +4,6 @@ const router = express.Router();
 
 router.post('/getCandidateResponse', candidateResponseController.getCandidateResponse);
 router.get('/getAllUserAnswer', candidateResponseController.getAllUserAnswer);
-router.get('/getAnswerByEmail', candidateResponseController.getAnswerByEmail);
+router.post('/getAnswerByEmail', candidateResponseController.getAnswerByEmail);
 
 module.exports = router;

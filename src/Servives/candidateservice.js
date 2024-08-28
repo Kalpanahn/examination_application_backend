@@ -36,3 +36,6 @@ async function sendOTP(email,message)
     return otp
 }
 module.exports = {sendOTP};
+
+
+

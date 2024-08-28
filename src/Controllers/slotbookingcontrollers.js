@@ -2,10 +2,12 @@ const Booking = require('../Modules/slotbookingModule');
 const TimeSlot = require('../Modules/timeSlotModule');
 const Candidate = require('../Modules/candidateModule');
 const KGIDCandidate = require('../Modules/kgidcandidateModule');
+const { sendSlotBookingEmail } = require("../Servives/emailservice.js");
+
 // Book a time slot
 const BookSlot = async (req, res) => {
-    const { email, date, time, district } = req.body;
-    console.log('Request received:', { email, date, time, district });
+    const { email, date, time, district,name } = req.body;
+    console.log('Request received:', { email, date, time, district ,name});
 
     try {
         const user_email = await Booking.findOne({ email: email });
@@ -14,17 +16,12 @@ const BookSlot = async (req, res) => {
 
             return res.status(404).json({ error: "user can book only one slot" })
         }
-
-
         const parsedDate = new Date(date);
         parsedDate.setUTCHours(0, 0, 0, 0);
 
         getTimeSlot1(parsedDate)
         const timeSlot = await TimeSlot.findOne({ date: parsedDate });
         console.log(timeSlot, "timeSlott")
-
-
-
         if (!timeSlot) {
             return res.status(404).json({ error: 'Time slot not found' });
         }
@@ -32,8 +29,6 @@ const BookSlot = async (req, res) => {
         console.log('TimeSlot found:', timeSlot);
 
         const slot = timeSlot.slots.find(slot => slot.time === time);
-
-
         if (!slot) {
             return res.status(404).json({ error: 'Slot not found' });
         }
@@ -54,27 +49,38 @@ const BookSlot = async (req, res) => {
         if (findEmailwithoutKGID) {
             updateCandidate = await Candidate.findOneAndUpdate(
                 { email: email },
-                { $set:{booking_id: newBooking._id}},
-                { new: true, upsert: true }  // Create if not exists
+                { $set: { booking_id: newBooking._id } },
+                { new: true, upsert: true } 
             );
         }
         const findEmailwithKGID = await KGIDCandidate.findOne({ email: email });
         if (findEmailwithKGID) {
             updateCandidate = await KGIDCandidate.findOneAndUpdate(
                 { email: email },
-                { $set:{booking_id: newBooking._id}},
-                { new: true, upsert: true }  // Create if not exists
+                { $set: { booking_id: newBooking._id } },
+                { new: true, upsert: true }  
             );
         }
+        try {
+            await sendSlotBookingEmail(
+                'Kalpanahn456@gmail.com',  
+                email,                     
+                date,                      
+                time,                      
+                district,                   
+                newBooking._id,
+                name             
+            );
+        } catch (emailError) {
+            console.error('Error sending email to admin:', emailError);
+         }
+
         res.status(200).json({ message: 'Slot booked successfully', booking: newBooking, candidate: updateCandidate });
-
-
     } catch (error) {
         console.error('Error booking slot:', error);
         res.status(500).json({ error: 'Failed to book slot' });
     }
 };
-
 
 
 const viewBook = async (req, res) => {
@@ -135,18 +141,11 @@ const getTimeSlots = async (req, res) => {
             console.log("time")
             return res.status(400).json({ error: 'Invalid date format' });
         }
-
-
-
-
-        let timeSlot = await TimeSlot.findOne({ date: parsedDate });
+  let timeSlot = await TimeSlot.findOne({ date: parsedDate });
         console.log("timeSLot", timeSlot)
         if (!timeSlot) {
-
-            const slots = generateTimeSlots();
-
-
-            timeSlot = new TimeSlot({
+     const slots = generateTimeSlots();
+    timeSlot = new TimeSlot({
                 date: parsedDate,
                 slots
             });
@@ -155,9 +154,7 @@ const getTimeSlots = async (req, res) => {
 
         res.status(200).json({ slots: timeSlot.slots });
     }
-
-
-    catch (error) {
+  catch (error) {
         console.error('Failed to fetch time slots:', error);
         res.status(500).json({ error: 'Failed to fetch time slots' });
     }

@@ -11,8 +11,12 @@ const cpUpload = upload.fields([
   router.post("/loginKGIDCandidate", KGIDCandidateController.loginKGIDCandidate);
   router.put("/updateKGIDCandidate", cpUpload, KGIDCandidateController.updateKGIDCandidate);
   router.get("/kgidCandidateView", KGIDCandidateController.getKGIDCandidate);
-router.get("/singleKGIDCandidateView", KGIDCandidateController.candidateBookedView);
+router.post("/singleKGIDCandidateView", KGIDCandidateController.candidateBookedView);
+// router.post("/singleKGIDCandidateView", KGIDCandidateController.candidateBookedView);
 router.get("/getKGIDBookedCandidate", KGIDCandidateController.getKGIDCandidate);
+router.post("/getSingleKGIDBookedCandidate", KGIDCandidateController.singleView);
+router.post("/singleViewKGIDBookedCandidate", KGIDCandidateController.singleCandidateView);
+
 
 
 module.exports = router;

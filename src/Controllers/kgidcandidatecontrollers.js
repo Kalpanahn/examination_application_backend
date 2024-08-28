@@ -123,6 +123,8 @@ KGIDCandidateController.candidateBookedView = async (req, res) => {
     res.status(500).json({ error: "error while fetching candidate details" });
   }
 };
+
+
 KGIDCandidateController.singleView = async (req, res) => {
   try {
     const { user_id } = req.body;
@@ -134,5 +136,20 @@ KGIDCandidateController.singleView = async (req, res) => {
     res.status(500).json({ error: "error while fetching candidate details" });
   }
 };
+
+
+
+KGIDCandidateController.singleCandidateView = async (req, res) => {
+  try {
+    const { KGID } = req.body;
+    const data = await KGIDCandidate.findOne({KGID}).populate("booking_id");
+
+    res.json(data);
+  } catch (err) {
+    console.log("error while fetching candidate details", err);
+    res.status(500).json({ error: "error while fetching candidate details" });
+  }
+};
+
 
 module.exports = { upload, KGIDCandidateController};

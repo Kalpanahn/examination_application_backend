@@ -2,7 +2,8 @@ const { DeptAdmin, CenterAdmin } = require("../Modules/adminModule");
 const Candidate = require('../Modules/candidateModule');
 const KGIDCandidate = require('../Modules/kgidcandidateModule');
 const UserAnswer = require('../Modules/candidateresponseModule');
-const secretKey = process.env.JWT_TOKEN;
+let secretKey = process.env.JWT_TOKEN;
+secretKey = "adhya"
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 
@@ -153,6 +154,7 @@ centerAdminController.adminApproval = async (req,res) => {
 
 centerAdminController.candidateAttendence = async (req, res) => {
   const { email, attendence } = req.body;
+  console.log(`Received request with email: ${email}, attendence: ${attendence}`);
 
   try {
     let candidate = await Candidate.findOne({ email });
@@ -166,6 +168,7 @@ centerAdminController.candidateAttendence = async (req, res) => {
       await candidate.save();
 
       return res.status(200).json({ message: 'Attendance updated successfully in Candidate' });
+      
     } else {
       candidate = await KGIDCandidate.findOne({ email });
 
@@ -179,7 +182,7 @@ centerAdminController.candidateAttendence = async (req, res) => {
 
         return res.status(200).json({ message: 'Attendance updated successfully in KGIDCandidate' });
       } else {
-        return res.status(400).json({ message: 'Candidate not found in either schema' });
+        return res.status(400).json({ error: 'Candidate not found in either schema' });
       }
     }
   } catch (error) {
