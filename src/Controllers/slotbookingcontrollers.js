@@ -64,12 +64,11 @@ const BookSlot = async (req, res) => {
         }
         try {
             await sendSlotBookingEmail(
-                'Kalpanahn456@gmail.com',  
+                // 'Kalpanahn456@gmail.com',  
                 email,                     
                 date,                      
                 time,                      
                 district,                   
-                newBooking._id,
                 name             
             );
         } catch (emailError) {
@@ -99,7 +98,12 @@ const viewBook = async (req, res) => {
 const viewbookedcandidateDetails = async (req, res) => {
     try {
         const booking = await Booking.find()
-        res.send(booking)
+        const totalCount = booking.length;
+        // res.send(booking)
+        res.json({
+            totalCount: totalCount,
+            bookingDetails: booking
+        })
     }
     catch {
         res.status(500).json({ err: "some internal error" });

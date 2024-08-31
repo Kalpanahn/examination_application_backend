@@ -12,14 +12,14 @@ const centerAdminController = {}
 
 deptAdminController.registerDeptAdmin = async (req, res) => {
   try {
-    const findEmail = await DeptAdmin.findOne({ email:req.body.email });
+    const findEmail = await DeptAdmin.findOne({ email: req.body.email });
     if (findEmail) {
       console.log("This email is already exist");
       return res.status(400).json({ error: "email already exits" });
     }
-    else{
+    else {
       const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
-      if (!req.body.password || !req.body.email ) {
+      if (!req.body.password || !req.body.email) {
         return res.status(401).send("Email,Password fields cannot be empty");
       }
       if (!passwordRegex.test(req.body.password)) {
@@ -37,7 +37,7 @@ deptAdminController.registerDeptAdmin = async (req, res) => {
       await newAdmin.save();
       res.send("Admin registered successfully");
     }
-   
+
   } catch (error) {
     console.error("Error registering admin:", error);
     res.status(500).send("Error in registering admin: " + error.message);
@@ -59,22 +59,22 @@ deptAdminController.loginDeptAdmin = async (req, res) => {
     const success = true;
     res.status(200).json({ success, token, admin });
 
-}
-catch (err) {
+  }
+  catch (err) {
     res.status(500).json({ error: 'insertion unsuccessfull' })
-}
+  }
 }
 
 centerAdminController.registerCenterAdmin = async (req, res) => {
   try {
-    const findEmail = await CenterAdmin.findOne({ email:req.body.email });
+    const findEmail = await CenterAdmin.findOne({ email: req.body.email });
     if (findEmail) {
       console.log("This email is already exist");
       return res.status(400).json({ error: "email already exits" });
     }
-    else{
+    else {
       const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
-      if (!req.body.password || !req.body.email ) {
+      if (!req.body.password || !req.body.email) {
         return res.status(401).send("Email,Password fields cannot be empty");
       }
       if (!passwordRegex.test(req.body.password)) {
@@ -92,7 +92,7 @@ centerAdminController.registerCenterAdmin = async (req, res) => {
       await newAdmin.save();
       res.send("Admin registered successfully");
     }
-   
+
   } catch (error) {
     console.error("Error registering admin:", error);
     res.status(500).send("Error in registering admin: " + error.message);
@@ -114,38 +114,38 @@ centerAdminController.loginCenterAdmin = async (req, res) => {
     const success = true;
     res.status(200).json({ success, token, admin });
 
-}
-catch (err) {
+  }
+  catch (err) {
     res.status(500).json({ error: 'insertion unsuccessfull' })
+  }
 }
-}
-centerAdminController.adminApproval = async (req,res) => {
+centerAdminController.adminApproval = async (req, res) => {
   const { email, action } = req.body;
   try {
 
 
-    const candidate=await Candidate.findOne({email});
-    if(candidate){
-      if(action !== 'approve' && action !== 'reject'){
+    const candidate = await Candidate.findOne({ email });
+    if (candidate) {
+      if (action !== 'approve' && action !== 'reject') {
         return res.status(400).json({ error: 'Invalid action value' });
       }
       candidate.adminApproval = action;
       await candidate.save();
       return res.status(200).json({ message: 'Approval updated successfully in Candidate' });
-    }else{
-      const candidate=await KGIDCandidate.findOne({email});
-      if(candidate){
-        if(action !== 'approve' && action !== 'reject'){
+    } else {
+      const candidate = await KGIDCandidate.findOne({ email });
+      if (candidate) {
+        if (action !== 'approve' && action !== 'reject') {
           return res.status(400).json({ error: 'Invalid action value' });
         }
         candidate.adminApproval = action;
         await candidate.save();
         return res.status(200).json({ message: 'Approval updated successfully in KGIDCandidate' });
-      }else{
+      } else {
         return res.status(400).json({ message: 'Candidate not found in either schema' });
       }
     }
-   
+
   } catch (error) {
     res.status(500).json({ error: 'Internal server error', message: error.message });
   }
@@ -168,7 +168,7 @@ centerAdminController.candidateAttendence = async (req, res) => {
       await candidate.save();
 
       return res.status(200).json({ message: 'Attendance updated successfully in Candidate' });
-      
+
     } else {
       candidate = await KGIDCandidate.findOne({ email });
 
@@ -205,12 +205,85 @@ deptAdminController.viewResultApproval = async (req, res) => {
 
       return res.status(200).json({ message: 'View result updated successfully in Candidate' });
     } else {
-        return res.status(400).json({ message: 'Candidate not found' });
-      
+      return res.status(400).json({ message: 'Candidate not found' });
+
     }
   } catch (error) {
     res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 };
+//api to get approve count and details
+deptAdminController.approvedCount = async (req, res) => {
+  try {
+    const candidates = await Candidate.find({
+      booking_id: { $exists: true, $ne: null },
+      adminApproval: { $in: ['approve'] }
+    });
+    const kgidCandidates = await KGIDCandidate.find({
+      booking_id: { $exists: true, $ne: null },
+      adminApproval: { $in: ['approve',] }
+    });
+
+    const combinedResults = [...candidates, ...kgidCandidates];
+    const totalApprovedCount = combinedResults.filter(candidate => candidate.adminApproval === 'approve').length;
+    const response = {
+      totalApprovedCount: totalApprovedCount,
+      candidates: combinedResults
+    };
+    res.json(response);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//api to get rejected  count and details
+deptAdminController.rejetcedCount = async (req, res) => {
+  try {
+    const candidates = await Candidate.find({
+      booking_id: { $exists: true, $ne: null },
+      adminApproval: { $in: ['reject'] }
+    });
+    const kgidCandidates = await KGIDCandidate.find({
+      booking_id: { $exists: true, $ne: null },
+      adminApproval: { $in: ['reject',] }
+    });
+
+    const combinedResults = [...candidates, ...kgidCandidates];
+    const totalRejectedCount = combinedResults.filter(candidate => candidate.adminApproval === 'reject').length;
+    const response = {
+      totalRejectedCount: totalRejectedCount,
+      candidates: combinedResults
+    };
+    res.json(response);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+//api to get pending  count and details
+deptAdminController.pendingCount = async (req, res) => {
+  try {
+    const candidates = await Candidate.find({
+      booking_id: { $exists: true, $ne: null },
+      adminApproval: { $in: ['pending'] }
+    });
+    const kgidCandidates = await KGIDCandidate.find({
+      booking_id: { $exists: true, $ne: null },
+      adminApproval: { $in: ['pending',] }
+    });
+
+    const combinedResults = [...candidates, ...kgidCandidates];
+    const totalpendingCount = combinedResults.filter(candidate => candidate.adminApproval === 'pending').length;
+    const response = {
+      totalpendingCount: totalpendingCount,
+      candidates: combinedResults
+    };
+    res.json(response);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 module.exports = { deptAdminController, centerAdminController };

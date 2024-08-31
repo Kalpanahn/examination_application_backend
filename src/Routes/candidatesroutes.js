@@ -13,6 +13,7 @@ router.post("/loginCandidate", candidateController.loginCandidate);
 router.put('/update-candidate', cpUpload, candidateController.updateCandidate);
 router.post("/sendOTP", candidateController.sendOTP);
 router.get("/getCandidates",candidateController.candidateView);// get candidate deatils who have booked slots
-router.post("/getSingleCandidate",candidateController.singleView); // get candidate deatils by id who have booked 
+router.post("/getSingleCandidate",candidateController.singleView); 
+router.get('/downloadPdf',candidateController.downloadPDF)
 
 module.exports = router;

@@ -9,6 +9,9 @@ const { sendOTP } = require("../Servives/candidateservice.js");
 const candidateController = {};
 const fs = require('fs');
 const e = require("express");
+const KGIDCandidate=require('../Modules/kgidcandidateModule');
+const NonKGIDCandidate=require('../Modules/candidateModule');
+const generatePDF = require('../Servives/pdfdownload');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -23,6 +26,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
 candidateController.registerCandidate = async (req, res) => {
   try {
     console.log("try block")
@@ -61,7 +65,7 @@ candidateController.registerCandidate = async (req, res) => {
 candidateController.sendOTP = async (req, res) => {
   try {
     const message = "Please enter the following OTP to verify your email: ";
-    const otp = await sendOTP(req.body.email,message);
+    const otp = await sendOTP(req.body.email, message);
     res.status(200).json({ message: "Mail has been sent", otp: otp, });
   } catch (error) {
     console.error("Error sending OTP:", error);
@@ -96,6 +100,7 @@ candidateController.updateCandidate = async (req, res) => {
         candidate.currentCompany = req.body.currentCompany;
         candidate.experience = req.body.experience;
         candidate.gender = req.body.gender;
+        candidate.department = req.body.department
 
         // Save file paths if files were uploaded
         if (req.files['profilepic']) {
@@ -133,7 +138,7 @@ candidateController.loginCandidate = async (req, res) => {
       return res.status(400).json({ error: "password does not exits" });
     }
     const idData = candidate.id;
-    console.log(secretKey,"secretKey")
+    console.log(secretKey, "secretKey")
     const token = await jwt.sign({ id: idData }, secretKey);
     const success = true;
     res.status(200).json({ success, token, candidate });
@@ -145,7 +150,7 @@ candidateController.loginCandidate = async (req, res) => {
 candidateController.candidateView = async (req, res) => {
 
   try {
-    const data = await Candidate.find({booking_id:{$ne:null}}).populate('booking_id');
+    const data = await Candidate.find({ booking_id: { $ne: null } }).populate('booking_id');
     console.log('Populated data:', data);
     res.json(data);
 
@@ -168,4 +173,25 @@ candidateController.singleView = async (req, res) => {
     res.status(500).json({ error: 'error while fetching candidate details' })
   }
 }
+
+candidateController.downloadPDF = async (req, res) => {
+  try {
+    const { id } = req.body;
+    let user = await KGIDCandidate.findById(id);
+    if (!user) {
+      user = await NonKGIDCandidate.findById(id);
+    }
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    generatePDF(res, user);
+  } catch (err) {
+    console.error('Error in downloadPDF:', err); 
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+
 module.exports = { upload, candidateController };

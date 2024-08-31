@@ -1,11 +1,26 @@
 const nodemailer = require("nodemailer");
 require('dotenv').config()
+const {DeptAdmin}=require("../Modules/adminModule")
 
 
-async function sendSlotBookingEmail(adminEmail, candidateEmail, date, time, district, bookingId, candidateName) {
+async function sendSlotBookingEmail( candidateEmail, date, time, district,  candidateName) {
     console.log(process.env.EMAIL, process.env.PASSWORD);
+    let adminEmail;
+    try{
+ 
+    const admin = await DeptAdmin.findOne();
+    if (admin) {
+        adminEmail = admin.email;
+    } else {
+        throw new Error('Admin email not found');
+    }
+    } catch (error) {
+        console.error('Error fetching admin email:', error);
+        return;
+    }
     const transporter = nodemailer.createTransport({
         service: "gmail",
+        // service: "outlook",
         host: "smtp.gmail.com",
         port: 587,
         secure: false,
